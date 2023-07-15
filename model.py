@@ -78,11 +78,6 @@ class Train(object):
 
                 self.optimizer.zero_grad(set_to_none=True)
 
-                # calculate weights for loss
-                # loss_sim = torch.zeros(args.batch_size).to(self.device)
-                # loss_mse = torch.zeros(args.batch_size).to(self.device)
-
-
                 with torch.no_grad():
                     # extract feature through vgg-16
                     feature_1 = torch.cat((img1, img1, img1), dim=1)
@@ -94,7 +89,6 @@ class Train(object):
 
                         # calculate intensity weight, only 1 to 2 pooling layers
                         if i >= 0:
-                        # if i > 0:
                             en_1 = EN(feature_1[i])
                             en_2 = EN(feature_2[i])
                             std_1 = std(feature_1[i])
@@ -110,7 +104,6 @@ class Train(object):
                                 inten_2 = torch.cat((inten_2, torch.unsqueeze(en_std_2, dim=-1)), dim=-1)
 
                         # calculate detail weight, only 1 to 2 pooling layers
-                        # if i < len(feature_1) - 1:
                         if i >= 0:
                             grad_1 = torch.mean(features_grad(feature_1[i]).pow(2), dim=[1, 2, 3])
                             grad_2 = torch.mean(features_grad(feature_2[i]).pow(2), dim=[1, 2, 3])
@@ -136,8 +129,6 @@ class Train(object):
                 self.optimizer.zero_grad()
 
                 # calculate sim loss
-                # detail_weight_list = torch.ones((img1.shape[0], 2)).to(self.device) * 0.5
-                # inten_weight_list = torch.ones((img1.shape[0], 2)).to(self.device) * 0.5
                 ssim_img1 = (1 - self.ms_ssim(fusion, img1))
                 ssim_img2 = (1 - self.ms_ssim(fusion, img2))
                 loss_sim = detail_weight_list[:, 0] * ssim_img1 + detail_weight_list[:, 1] * ssim_img2
@@ -164,13 +155,7 @@ class Train(object):
                 fusion_gram = [gram(fmap) for fmap in fusion_features]
                 loss_style = 0.0
                 for j in range(2):
-                    # use l2 loss
-                    # loss_style += self.mse(fusion_gram[j], style_gram[j])
-                    # use k-l divergence
-                    # loss_style += F.kl_div(fusion_gram[j].softmax(dim=-1).log(), style_gram[j].softmax(dim=-1).log(), reduction='sum')
                     loss_style += self.kldiv(fusion_gram[j].softmax(dim=-1).log(), style_gram[j].softmax(dim=-1).log())
-                    # loss_style += self.kldiv(F.log_softmax(fusion_gram[j]), F.log_softmax(style_gram[j]))
-                    # loss_style += self.kldiv(fusion_gram[j], style_gram[j])
                 print('style loss: ', loss_style)
 
                 # calculate patch loss
@@ -218,8 +203,6 @@ class Train(object):
                 patch_grad_patch = torch.cat((grad_ir, grad_vis), 1)
                 patch_grad_patch = F.softmax(patch_grad_patch, dim=1).to(self.device)
 
-                # patch_grad_patch = torch.ones(patch_grad_patch.shape).to(self.device) * 0.5
-
                 # calculate the ssim loss
                 ssim_patch = patch_grad_patch[:, 0:1, :, :] * (1 - ssim_ir_f) + patch_grad_patch[:, 1:2, :, :] * (1 - ssim_vis_f)
                 ssim_patch = torch.mean(ssim_patch)
@@ -229,8 +212,6 @@ class Train(object):
                 int_vis = (mean_vis + args.loss_beta * var_vis) / args.c_intensity
                 patch_int_patch = torch.cat((int_ir, int_vis), 1)
                 patch_int_patch = F.softmax(patch_int_patch, dim=1).to(self.device)
-
-                # patch_int_patch = torch.ones(patch_int_patch.shape).to(self.device) * 0.5
 
                 # calculate the mse loss
                 loss_mse_patch = nn.MSELoss(reduction='none').to(self.device)
@@ -246,15 +227,11 @@ class Train(object):
 
                 # calculate total loss
                 loss_total = loss_sim + args.loss_alpha * loss_mse + args.loss_alpha2 * loss_per + args.loss_style * loss_style + args.loss_patch * loss_patch
-                # loss_total = loss_sim + args.loss_alpha * loss_mse
-                # loss_total = loss_sim + args.loss_alpha * loss_mse + args.loss_alpha2 * loss_per
-                # loss_total = loss_style
                 loss_total_epoch.append(loss_total.item())
 
                 loss_total.backward()
                 self.optimizer.step()
 
-            # self.scheduler.step()
             self.loss.append(np.mean(loss_total_epoch))
             print('epoch: %s, loss: %s' % (epoch, np.mean(loss_total_epoch)))
 
@@ -307,38 +284,9 @@ class Test(object):
             outputs = outputs.cpu().detach().numpy()
             outputs = np.squeeze(outputs)
 
-            ir_img = ir_img.cpu().detach().numpy()
-            ir_img = np.squeeze(ir_img)
-
-            vis_img = vis_img.cpu().detach().numpy()
-            vis_img = np.squeeze(vis_img)
-
             outputs_scale = (outputs - outputs.min()) / (outputs.max() - outputs.min())
-            # outputs_scale = (outputs - outputs.mean()) / outputs.std()
             outputs_scale = (outputs_scale * 255).astype(np.int)
             cv2.imwrite('./fusion_result/gray/%s.jpg' % ir_name[0], outputs_scale)
-
-            # outputs = (outputs * 255).astype(np.int)
-            # cv2.imwrite('test.jpg', outputs)
-
-            # feature_input = enhance_model.input_feature.cpu()[0, 0, :, :]
-            # plt.imshow(feature_input)
-
-            # plt.figure()
-            # plt.subplot(141)
-            # plt.imshow(ir_img, cmap='gray')
-            # plt.axis('off')
-            # plt.subplot(142)
-            # plt.imshow(vis_img, cmap='gray')
-            # plt.axis('off')
-            # plt.subplot(143)
-            # plt.imshow(outputs, cmap='gray')
-            # plt.axis('off')
-            # plt.subplot(144)
-            # plt.imshow(outputs_scale, cmap='gray')
-            # plt.axis('off')
-            # plt.show()
-            # plt.savefig('test.jpg', cmap='gray')
 
 
 class TestColor(object):
@@ -372,32 +320,12 @@ class TestColor(object):
             outputs = outputs.cpu().detach().numpy()
             outputs = np.squeeze(outputs)
 
-            ir_img = ir_img.cpu().detach().numpy()
-            ir_img = np.squeeze(ir_img)
-
-            vis_img = vis_img.cpu().detach().numpy()
-            vis_img = np.squeeze(vis_img)
-
             # save gray fusion image
             outputs_scale = (outputs - outputs.min()) / (outputs.max() - outputs.min())
-            # outputs_scale = (outputs - outputs.mean()) / outputs.std()
             outputs_scale = (outputs_scale * 255).astype(np.int)
-            # cv2.imwrite('E:\project\code\multitask2023/kaist-simplified/fusion/%s.jpg' % ir_name[0], outputs_scale)
 
             # save color image
             color = np.stack((outputs_scale, vis_Cb.squeeze() * 255, vis_Cr.squeeze() * 255), axis=2)
             color = color.astype('uint8')
             color = cv2.cvtColor(color, cv2.COLOR_YCrCb2BGR)
             cv2.imwrite('E:\project\code\multitask2023/M3FD-simplified/fusion/%s.jpg' % ir_name[0], color)
-
-            # plt.figure()
-            # plt.subplot(131)
-            # plt.imshow(ir_img, cmap='gray')
-            # plt.axis('off')
-            # plt.subplot(132)
-            # plt.imshow(vis_img, cmap='gray')
-            # plt.axis('off')
-            # plt.subplot(133)
-            # plt.imshow(outputs, cmap='gray')
-            # plt.axis('off')
-            # plt.show()

@@ -162,10 +162,6 @@ class FusionBlock(nn.Module):
         else:
             up_x = x
 
-        # fusion = torch.cat((up_x, y), dim=1)
-        # fusion = self.one(fusion)
-        # fusion = up_x + y
-
         fusion_x = up_x * self.channel_map(x, y)[0] * self.spatial_map(x, y)[0]
         fusion_y = y * self.channel_map(x, y)[1] * self.spatial_map(x, y)[1]
         fusion = fusion_x + fusion_y

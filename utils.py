@@ -59,9 +59,7 @@ def features_grad(features):
     kernel = [[0, 1, 1, 2, 2, 2, 1, 1, 0], [1, 2, 4, 5, 5, 5, 4, 2, 1], [1, 4, 5, 3, 0, 3, 5, 4, 1],
               [2, 5, 3, -12, -24, -12, 3, 5, 2], [2, 5, 0, -24, -40, -24, 0, 5, 2], [2, 5, 3, -12, -24, -12, 3, 5, 2],
               [1, 4, 5, 3, 0, 3, 4, 4, 1], [1, 2, 4, 5, 5, 5, 4, 2, 1], [0, 1, 1, 2, 2, 2, 1, 1, 0]]
-    # kernel = [[0, 1, 1, 1 / 2, 1 / 2, 1 / 2, 1, 1, 0], [1, 1 / 2, 1 / 4, 1 / 5, 1 / 5, 1 / 5, 1 / 4, 1 / 2, 1], [1, 1 / 4, 1 / 5, 1 / 3, 0, 1 / 3, 1 / 5, 1 / 4, 1],
-    #           [1 / 2, 1 / 5, 1 / 3, -1 / 12, -1 / 24, -1 / 12, 1 / 3, 1 / 5, 1 / 2], [1 / 2, 1 / 5, 0, -1 / 24, -1 / 40, -1 / 24, 0, 1 / 5, 1 / 2], [1 / 2, 1 / 5, 1 / 3, -1 / 12, -1 / 24, -1 / 12, 1 / 3, 1 / 5, 1 / 2],
-    #           [1, 1 / 4, 1 / 5, 1 / 3, 0, 1 / 3, 1 / 4, 1 / 4, 1], [1, 1 / 2, 1 / 4, 1 / 5, 1 / 5, 1 / 5, 1 / 4, 1 / 2, 1], [0, 1, 1, 1 / 2, 1 / 2, 1 / 2, 1, 1, 0]]
+
     kernel = torch.FloatTensor(kernel).unsqueeze(0).unsqueeze(0)
     kernel = kernel.to(device)
     features = features * 255
@@ -84,13 +82,6 @@ def features_grad_patch(features):
     kernel = [[0, 1, 1, 2, 2, 2, 1, 1, 0], [1, 2, 4, 5, 5, 5, 4, 2, 1], [1, 4, 5, 3, 0, 3, 5, 4, 1],
               [2, 5, 3, -12, -24, -12, 3, 5, 2], [2, 5, 0, -24, -40, -24, 0, 5, 2], [2, 5, 3, -12, -24, -12, 3, 5, 2],
               [1, 4, 5, 3, 0, 3, 4, 4, 1], [1, 2, 4, 5, 5, 5, 4, 2, 1], [0, 1, 1, 2, 2, 2, 1, 1, 0]]
-    # kernel = [[0, 1, 1, 1 / 2, 1 / 2, 1 / 2, 1, 1, 0], [1, 1 / 2, 1 / 4, 1 / 5, 1 / 5, 1 / 5, 1 / 4, 1 / 2, 1],
-    #           [1, 1 / 4, 1 / 5, 1 / 3, 0, 1 / 3, 1 / 5, 1 / 4, 1],
-    #           [1 / 2, 1 / 5, 1 / 3, -1 / 12, -1 / 24, -1 / 12, 1 / 3, 1 / 5, 1 / 2],
-    #           [1 / 2, 1 / 5, 0, -1 / 24, -1 / 40, -1 / 24, 0, 1 / 5, 1 / 2],
-    #           [1 / 2, 1 / 5, 1 / 3, -1 / 12, -1 / 24, -1 / 12, 1 / 3, 1 / 5, 1 / 2],
-    #           [1, 1 / 4, 1 / 5, 1 / 3, 0, 1 / 3, 1 / 4, 1 / 4, 1],
-    #           [1, 1 / 2, 1 / 4, 1 / 5, 1 / 5, 1 / 5, 1 / 4, 1 / 2, 1], [0, 1, 1, 1 / 2, 1 / 2, 1 / 2, 1, 1, 0]]
     kernel = torch.FloatTensor(kernel).unsqueeze(0).unsqueeze(0)
     kernel = kernel.to(device)
     features = features * 255
@@ -131,59 +122,6 @@ def read_kaist(root_path):
     # for kaist dataset, len of ir_img == vis_img, i.e. 95324
     # return absolute path of images
     return ir_img, vis_img
-
-
-class SplitConcatImg():
-    '''
-    split an image to patches and concatenate patches to an image
-    '''
-    def __init__(self, img, save_path, patch=128):
-        self.img = img
-        self.path = save_path
-        self.patch = patch
-        self.h, self.w = img.shape
-        self.h_retain = self.h % self.patch
-        self.w_retain = self.w % self.patch
-        self.h_num = self.h // self.patch if self.h_retain == 0 else self.h // self.patch + 1
-        self.w_num = self.w // self.patch if self.w_retain == 0 else self.w // self.patch + 1
-
-    def split_image(self):
-        # save patch without last row and column
-        for i in range(self.h_num - 1):
-            for j in range(self.w_num - 1):
-                patch_img = self.img[i * self.patch: (i + 1) * self.patch, j * self.patch: (j + 1) * self.patch]
-                cv2.imwrite(os.path.join(self.path, 'patch_row_%i_col_%i.jpg' % (i, j)), patch_img)
-
-        # save last column patch without last row
-        for i in range(self.h_num - 1):
-            patch_img = self.img[i * self.patch: (i + 1) * self.patch, (self.w_num - 1) * self.patch:]
-            cv2.imwrite(os.path.join(self.path, 'patch_row_%i_col_%i.jpg' % (i, self.w_num - 1)), patch_img)
-
-        # save last row patch
-        for i in range(self.w_num):
-            patch_img = self.img[(self.h_num - 1) * self.patch:, i * self.patch: (i + 1) * self.patch]
-            cv2.imwrite(os.path.join(self.path, 'patch_row_%i_col_%i.jpg' % (self.h_num - 1, i)), patch_img)
-
-    def concat_image(self):
-        # compose patch from row to column
-        output = np.zeros((self.h, self.w), dtype=int)
-        # compose patch without last row and column
-        for i in range(self.h_num - 1):
-            for j in range(self.w_num - 1):
-                patch_img = cv2.imread(os.path.join(self.path, 'patch_row_%i_col_%i.jpg' % (i, j)), cv2.IMREAD_GRAYSCALE)
-                output[i * self.patch: (i + 1) * self.patch, j * self.patch: (j + 1) * self.patch] = patch_img
-
-        # compose last column without last row
-        for i in range(self.h_num - 1):
-            patch_img = cv2.imread(os.path.join(self.path, 'patch_row_%i_col_%i.jpg' % (i, self.w_num - 1)), cv2.IMREAD_GRAYSCALE)
-            output[i * self.patch: (i + 1) * self.patch, (self.w_num - 1) * self.patch:] = patch_img
-
-        # compose last row patch
-        for i in range(self.w_num):
-            patch_img = cv2.imread(os.path.join(self.path, 'patch_row_%i_col_%i.jpg' % (self.h_num - 1, i)), cv2.IMREAD_GRAYSCALE)
-            output[(self.h_num - 1) * self.patch:, i * self.patch: (i + 1) * self.patch] = patch_img
-
-        cv2.imwrite(os.path.join(self.path, 'output.jpg'), output)
 
 
 # Calculate Gram matrix (G = FF^T)

@@ -13,12 +13,6 @@ parser.add_argument('--test_irimage_path', type=str, default='E:\project\code\mu
                     help='infra image path of test')
 parser.add_argument('--test_visimage_path', type=str, default='E:\project\code\multitask2023\M3FD-simplified/vis/half-size',
                     help='visible image path of test')
-# parser.add_argument('--test_irimage_path', type=str, default='E:\project/code/inf_fusion2022/test_roadscene/cropinfrared_4x',
-#                     help='infra image path of test')
-# parser.add_argument('--test_visimage_path', type=str, default='E:\project/code/inf_fusion2022/test_roadscene/crop_LR_visible_4x',
-#                     help='visible image path of test')
-# parser.add_argument('--kaist_path', type=str, default='E:\project\data/kaist-cvpr15/images',
-#                     help='kaist dataset path')
 parser.add_argument('--kaist_path', type=str, default='/data/yg/data/kaist-cvpr15/images',
                     help='kaist dataset path')
 
@@ -44,8 +38,7 @@ parser.add_argument('--loss_patch_alpha', type=float, default=130, help='alpha v
 # Log file
 parser.add_argument('--log_dir', type=str, default='./fusion_train_log', help='fusion training log file path')
 parser.add_argument('--model_path', type=str, default='./fusion_model/', help='fusion model path')
-# parser.add_argument('--log_dir', type=str, default='/home/vipsl415/yg/code/inf_fusion2022/fusion_train_log', help='fusion training log file path')
-# parser.add_argument('--model_path', type=str, default='/home/vipsl415/yg/code/inf_fusion2022/fusion_model/', help='fusion model path')
+parser.add_argument('--model_path', type=str, default='/home/vipsl415/yg/code/inf_fusion2022/fusion_model/', help='fusion model path')
 parser.add_argument('--model', type=str, default='fusion_model.pth', help='fusion model name')
 
 parser.add_argument('--feature_num', type=int, default=32, help='number of features')
