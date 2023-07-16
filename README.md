@@ -12,15 +12,24 @@ Infrared and visible image fusion aims at generating a fused image containing th
 * Matplotlib
 
 # Training
-Download the pre-trained vgg16 model from [VGG16](https://download.pytorch.org/models/vgg16-397923af.pth) and rename it to vgg16.pth. 
+Download the pre-trained vgg16 model from [VGG16](https://download.pytorch.org/models/vgg16-397923af.pth) and rename it vgg16.pth.  Placing the vgg16.pth in the same directory with model.py.
 
-Download the KASIT dataset from [kaist](https://github.com/SoonminHwang/rgbt-ped-detection).
+Download the KASIT dataset from [KAIST](https://github.com/SoonminHwang/rgbt-ped-detection).
 
-Change the line 23 of main.py as "train()".
+Our work is trained on the KAIST dataset, so we write a function to read KAIST dataset.
 
-`python main.py`
+Change line 23 of main.py to "train()".
+
+`python main.py --kaist_path ./kaist-cvpr15/images`
+
+The generated fusion model and log file locates at ./fusion_model/fusion_model.pth and ./fusion_log, respectively.
 
 # Testing
-Change the line 23 of main.py as "test()".
+Change line 23 of main.py to "test()".
 
-`python main.py`
+You can change the test data path in option.py (suggested), or run the following command to add your test data path:
+
+`python main.py --test_irimage_path ./21_pairs_tno/ir  --test_visimage_path ./21_pairs_tno/vis`
+
+# Contact Me
+If you have any questions about the paper or code, please email to me ssyanguang@gmail.com.
