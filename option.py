@@ -1,6 +1,6 @@
 import argparse
 
-parser = argparse.ArgumentParser(description='Low light image fusion')
+parser = argparse.ArgumentParser(description='Infrared and visible image fusion')
 # Seed
 parser.add_argument('--seed', type=int, default=2020, help='random seed')
 
